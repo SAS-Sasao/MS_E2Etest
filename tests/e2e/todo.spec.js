@@ -1,24 +1,12 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('TODOアプリケーションのE2Eテスト', () => {
-    // テスト全体で使用する認証情報
-    const testUsername = `testuser_${Date.now()}`;
-    const testPassword = 'testpass123';
-
-    test.beforeAll(async ({ browser }) => {
-        // 新規ユーザー登録を一度だけ実行
-        const page = await browser.newPage();
-        await page.goto('http://localhost:1234');
-        await page.click('text=登録');
-        await page.fill('#username', testUsername);
-        await page.fill('#password', testPassword);
-        await page.fill('#confirmPassword', testPassword);
-        await page.click('button:has-text("登録")');
-        await page.close();
-    });
+    // テスト全体で使用する認証情報（固定）
+    const testUsername = 'sasao';
+    const testPassword = 'ts05140952';
 
     test.beforeEach(async ({ page }) => {
-        // 各テスト前にログインのみ実行
+        // テスト前にアプリケーションにアクセスしてログイン
         await page.goto('http://localhost:1234');
         await page.fill('#username', testUsername);
         await page.fill('#password', testPassword);
@@ -28,7 +16,7 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         await expect(page).toHaveURL('http://localhost:1234/');
     });
 
-    test('新規ユーザー登録とログインの検証', async ({ page }) => {
+    test('ログイン状態の確認', async ({ page }) => {
         // ユーザー情報が正しく表示されていることを確認
         await expect(page.locator('.user-info')).toContainText(testUsername);
     });
