@@ -1,9 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('TODOアプリケーションのE2Eテスト', () => {
+    // テスト全体で使用する認証情報
+    const testUsername = `testuser_${Date.now()}`;
+    const testPassword = 'testpass123';
+
     test.beforeEach(async ({ page }) => {
         // テスト前にアプリケーションにアクセス
-        await page.goto('http://localhost:6000');
+        await page.goto('http://localhost:1234');
     });
 
     test('新規ユーザー登録とログイン', async ({ page }) => {
@@ -12,28 +16,28 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         
         // ユーザー登録
         const username = `testuser_${Date.now()}`;
-        await page.fill('#username', username);
-        await page.fill('#password', 'testpass123');
-        await page.fill('#confirmPassword', 'testpass123');
+        await page.fill('#username', testUsername);
+        await page.fill('#password', testPassword);
+        await page.fill('#confirmPassword', testPassword);
         await page.click('button:has-text("登録")');
         
         // ログインページにリダイレクトされることを確認
         await expect(page).toHaveURL(/.*login/);
         
         // ログイン
-        await page.fill('#username', username);
-        await page.fill('#password', 'testpass123');
+        await page.fill('#username', testUsername);
+        await page.fill('#password', testPassword);
         await page.click('button:has-text("ログイン")');
         
         // メインページにリダイレクトされることを確認
-        await expect(page).toHaveURL('http://localhost:6000/');
-        await expect(page.locator('.user-info')).toContainText(username);
+        await expect(page).toHaveURL('http://localhost:1234/');
+        await expect(page.locator('.user-info')).toContainText(testUsername);
     });
 
     test('タスクの追加、完了、削除', async ({ page }) => {
         // ログイン
-        await page.fill('#username', 'testuser');
-        await page.fill('#password', 'testpass123');
+        await page.fill('#username', testUsername);
+        await page.fill('#password', testPassword);
         await page.click('button:has-text("ログイン")');
         
         // タスクの追加
@@ -56,8 +60,8 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
 
     test('タスクのフィルタリング', async ({ page }) => {
         // ログイン
-        await page.fill('#username', 'testuser');
-        await page.fill('#password', 'testpass123');
+        await page.fill('#username', testUsername);
+        await page.fill('#password', testPassword);
         await page.click('button:has-text("ログイン")');
         
         // 複数のタスクを追加
@@ -91,8 +95,8 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
 
     test('ログアウト機能', async ({ page }) => {
         // ログイン
-        await page.fill('#username', 'testuser');
-        await page.fill('#password', 'testpass123');
+        await page.fill('#username', testUsername);
+        await page.fill('#password', testPassword);
         await page.click('button:has-text("ログイン")');
         
         // ログアウト
