@@ -41,32 +41,34 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
 
     test('タスクのフィルタリング', async ({ page }) => {
         // 複数のタスクを追加
-        const tasks = ['タスク1', 'タスク2', 'タスク3'];
-        for (const task of tasks) {
-            await page.fill('#newTaskInput', task);
-            await page.click('button:has-text("追加")');
-        }
+        await page.fill('#newTaskInput', 'フィルターテスト1');
+        await page.click('button:has-text("追加")');
+        await page.fill('#newTaskInput', 'フィルターテスト2');
+        await page.click('button:has-text("追加")');
+        await page.fill('#newTaskInput', 'フィルターテスト3');
+        await page.click('button:has-text("追加")');
         
-        // 2番目のタスクを完了状態に
-        await page.check(`text=タスク2 >> xpath=../preceding-sibling::input[@type="checkbox"]`);
+        // 2番目のタスクのチェックボックスを特定して完了状態に
+        const taskItems = await page.locator('.task-item').all();
+        await taskItems[1].locator('input[type="checkbox"]').check();
         
         // 未完了タスクのフィルター
         await page.click('button[data-filter="active"]');
-        await expect(page.locator('text=タスク1')).toBeVisible();
-        await expect(page.locator('text=タスク2')).not.toBeVisible();
-        await expect(page.locator('text=タスク3')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト1")')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト2")')).not.toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト3")')).toBeVisible();
         
         // 完了済みタスクのフィルター
         await page.click('button[data-filter="completed"]');
-        await expect(page.locator('text=タスク1')).not.toBeVisible();
-        await expect(page.locator('text=タスク2')).toBeVisible();
-        await expect(page.locator('text=タスク3')).not.toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト1")')).not.toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト2")')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト3")')).not.toBeVisible();
         
         // すべてのタスクを表示
         await page.click('button[data-filter="all"]');
-        await expect(page.locator('text=タスク1')).toBeVisible();
-        await expect(page.locator('text=タスク2')).toBeVisible();
-        await expect(page.locator('text=タスク3')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト1")')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト2")')).toBeVisible();
+        await expect(page.locator('.task-title:has-text("フィルターテスト3")')).toBeVisible();
     });
 
     test('ログアウト機能', async ({ page }) => {
