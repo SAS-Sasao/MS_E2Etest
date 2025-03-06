@@ -1,0 +1,104 @@
+const { test, expect } = require('@playwright/test');
+
+test.describe('TODOアプリケーションのE2Eテスト', () => {
+    test.beforeEach(async ({ page }) => {
+        // テスト前にアプリケーションにアクセス
+        await page.goto('http://localhost:6000');
+    });
+
+    test('新規ユーザー登録とログイン', async ({ page }) => {
+        // 登録ページに移動
+        await page.click('text=登録');
+        
+        // ユーザー登録
+        const username = `testuser_${Date.now()}`;
+        await page.fill('#username', username);
+        await page.fill('#password', 'testpass123');
+        await page.fill('#confirmPassword', 'testpass123');
+        await page.click('button:has-text("登録")');
+        
+        // ログインページにリダイレクトされることを確認
+        await expect(page).toHaveURL(/.*login/);
+        
+        // ログイン
+        await page.fill('#username', username);
+        await page.fill('#password', 'testpass123');
+        await page.click('button:has-text("ログイン")');
+        
+        // メインページにリダイレクトされることを確認
+        await expect(page).toHaveURL('http://localhost:6000/');
+        await expect(page.locator('.user-info')).toContainText(username);
+    });
+
+    test('タスクの追加、完了、削除', async ({ page }) => {
+        // ログイン
+        await page.fill('#username', 'testuser');
+        await page.fill('#password', 'testpass123');
+        await page.click('button:has-text("ログイン")');
+        
+        // タスクの追加
+        const taskTitle = `テストタスク_${Date.now()}`;
+        await page.fill('#newTaskInput', taskTitle);
+        await page.click('button:has-text("追加")');
+        
+        // タスクが追加されたことを確認
+        const taskElement = page.locator(`.task-title:has-text("${taskTitle}")`);
+        await expect(taskElement).toBeVisible();
+        
+        // タスクを完了状態に変更
+        await page.check(`text=${taskTitle} >> xpath=../preceding-sibling::input[@type="checkbox"]`);
+        await expect(page.locator(`.task-item:has-text("${taskTitle}")`)).toHaveClass(/completed/);
+        
+        // タスクを削除
+        await page.click(`text=${taskTitle} >> xpath=../..//button[text()="削除"]`);
+        await expect(taskElement).not.toBeVisible();
+    });
+
+    test('タスクのフィルタリング', async ({ page }) => {
+        // ログイン
+        await page.fill('#username', 'testuser');
+        await page.fill('#password', 'testpass123');
+        await page.click('button:has-text("ログイン")');
+        
+        // 複数のタスクを追加
+        const tasks = ['タスク1', 'タスク2', 'タスク3'];
+        for (const task of tasks) {
+            await page.fill('#newTaskInput', task);
+            await page.click('button:has-text("追加")');
+        }
+        
+        // 2番目のタスクを完了状態に
+        await page.check(`text=タスク2 >> xpath=../preceding-sibling::input[@type="checkbox"]`);
+        
+        // 未完了タスクのフィルター
+        await page.click('button[data-filter="active"]');
+        await expect(page.locator('text=タスク1')).toBeVisible();
+        await expect(page.locator('text=タスク2')).not.toBeVisible();
+        await expect(page.locator('text=タスク3')).toBeVisible();
+        
+        // 完了済みタスクのフィルター
+        await page.click('button[data-filter="completed"]');
+        await expect(page.locator('text=タスク1')).not.toBeVisible();
+        await expect(page.locator('text=タスク2')).toBeVisible();
+        await expect(page.locator('text=タスク3')).not.toBeVisible();
+        
+        // すべてのタスクを表示
+        await page.click('button[data-filter="all"]');
+        await expect(page.locator('text=タスク1')).toBeVisible();
+        await expect(page.locator('text=タスク2')).toBeVisible();
+        await expect(page.locator('text=タスク3')).toBeVisible();
+    });
+
+    test('ログアウト機能', async ({ page }) => {
+        // ログイン
+        await page.fill('#username', 'testuser');
+        await page.fill('#password', 'testpass123');
+        await page.click('button:has-text("ログイン")');
+        
+        // ログアウト
+        await page.click('button:has-text("ログアウト")');
+        
+        // ログインページにリダイレクトされることを確認
+        await expect(page).toHaveURL(/.*login/);
+    });
+});

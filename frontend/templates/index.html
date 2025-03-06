@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODOアプリ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>TODOアプリ</h1>
+            <div class="user-info">
+                <span>ようこそ、{{ current_user.username }}さん</span>
+                <button id="logoutBtn" class="btn btn-secondary">ログアウト</button>
+            </div>
+        </header>
+
+        <div class="todo-container">
+            <form id="addTaskForm" class="add-task-form">
+                <input type="text" id="newTaskInput" placeholder="新しいタスクを入力" required>
+                <button type="submit" class="btn btn-primary">追加</button>
+            </form>
+
+            <div class="task-filters">
+                <button class="btn btn-filter active" data-filter="all">すべて</button>
+                <button class="btn btn-filter" data-filter="active">未完了</button>
+                <button class="btn btn-filter" data-filter="completed">完了済み</button>
+            </div>
+
+            <ul id="taskList" class="task-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+        let currentFilter = 'all';
+
+        // タスクの取得
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                if (response.ok) {
+                    tasks = await response.json();
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('タスクの取得に失敗しました:', error);
+            }
+        }
+
+        // タスクの表示
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            const filteredTasks = tasks.filter(task => {
+                if (currentFilter === 'active') return !task.completed;
+                if (currentFilter === 'completed') return task.completed;
+                return true;
+            });
+
+            filteredTasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+                li.innerHTML = `
+                    <div class="task-content">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                            onchange="toggleTask(${task.id}, this.checked)">
+                        <span class="task-title">${task.title}</span>
+                    </div>
+                    <button class="btn btn-delete" onclick="deleteTask(${task.id})">削除</button>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        // 新しいタスクの追加
+        document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('newTaskInput');
+            const title = input.value.trim();
+
+            if (!title) return;
+
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title })
+                });
+
+                if (response.ok) {
+                    const task = await response.json();
+                    tasks.push(task);
+                    renderTasks();
+                    input.value = '';
+                }
+            } catch (error) {
+                console.error('タスクの追加に失敗しました:', error);
+            }
+        });
+
+        // タスクの完了状態の切り替え
+        async function toggleTask(taskId, completed) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ completed })
+                });
+
+                if (response.ok) {
+                    const updatedTask = await response.json();
+                    tasks = tasks.map(task => 
+                        task.id === taskId ? updatedTask : task
+                    );
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('タスクの更新に失敗しました:', error);
+            }
+        }
+
+        // タスクの削除
+        async function deleteTask(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    tasks = tasks.filter(task => task.id !== taskId);
+                    renderTasks();
+                }
+            } catch (error) {
+                console.error('タスクの削除に失敗しました:', error);
+            }
+        }
+
+        // フィルターの切り替え
+        document.querySelectorAll('.btn-filter').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-filter').forEach(btn => 
+                    btn.classList.remove('active')
+                );
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                renderTasks();
+            });
+        });
+
+        // ログアウト処理
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/logout');
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('ログアウトに失敗しました:', error);
+            }
+        });
+
+        // 初期表示
+        fetchTasks();
+    </script>
+</body>
+</html>
