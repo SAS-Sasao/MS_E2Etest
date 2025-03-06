@@ -8,14 +8,11 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
     test.beforeEach(async ({ page }) => {
         // テスト前にアプリケーションにアクセス
         await page.goto('http://localhost:1234');
-    });
 
-    test('新規ユーザー登録とログイン', async ({ page }) => {
         // 登録ページに移動
         await page.click('text=登録');
         
         // ユーザー登録
-        const username = `testuser_${Date.now()}`;
         await page.fill('#username', testUsername);
         await page.fill('#password', testPassword);
         await page.fill('#confirmPassword', testPassword);
@@ -34,12 +31,12 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         await expect(page.locator('.user-info')).toContainText(testUsername);
     });
 
+    test('新規ユーザー登録とログインの検証', async ({ page }) => {
+        // ユーザー情報が正しく表示されていることを確認
+        await expect(page.locator('.user-info')).toContainText(testUsername);
+    });
+
     test('タスクの追加、完了、削除', async ({ page }) => {
-        // ログイン
-        await page.fill('#username', testUsername);
-        await page.fill('#password', testPassword);
-        await page.click('button:has-text("ログイン")');
-        
         // タスクの追加
         const taskTitle = `テストタスク_${Date.now()}`;
         await page.fill('#newTaskInput', taskTitle);
@@ -59,11 +56,6 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
     });
 
     test('タスクのフィルタリング', async ({ page }) => {
-        // ログイン
-        await page.fill('#username', testUsername);
-        await page.fill('#password', testPassword);
-        await page.click('button:has-text("ログイン")');
-        
         // 複数のタスクを追加
         const tasks = ['タスク1', 'タスク2', 'タスク3'];
         for (const task of tasks) {
@@ -94,11 +86,6 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
     });
 
     test('ログアウト機能', async ({ page }) => {
-        // ログイン
-        await page.fill('#username', testUsername);
-        await page.fill('#password', testPassword);
-        await page.click('button:has-text("ログイン")');
-        
         // ログアウト
         await page.click('button:has-text("ログアウト")');
         
