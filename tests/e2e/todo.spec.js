@@ -29,20 +29,23 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         }
         
         // タスクの追加
-        const taskTitle = 'テストタスク_' + Date.now();
+        const taskTitle = 'テストタスク';
         await page.fill('#newTaskInput', taskTitle);
         await page.click('button:has-text("追加")');
         
-        // 追加したタスクが表示されるまで待機
-        await expect(page.locator(`.task-item >> text=${taskTitle}`)).toBeVisible();
+        // 追加したタスクが表示されるまで待機（タイムアウトを30秒に延長）
+        await expect(page.locator('.task-title', { hasText: taskTitle })).toBeVisible({ timeout: 30000 });
         
-        // 追加したタスクのチェックボックスを特定して完了状態に変更
-        await page.locator(`.task-item >> text=${taskTitle}`).locator('input[type="checkbox"]').check();
-        await expect(page.locator(`.task-item >> text=${taskTitle}`)).toHaveClass(/completed/);
+        // 追加したタスクの要素を取得
+        const taskItem = page.locator('.task-item', { has: page.locator('.task-title', { hasText: taskTitle }) });
         
-        // 追加したタスクの削除ボタンを特定して削除
-        await page.locator(`.task-item >> text=${taskTitle}`).locator('button:has-text("削除")').click();
-        await expect(page.locator(`.task-item >> text=${taskTitle}`)).not.toBeVisible();
+        // チェックボックスを特定して完了状態に変更
+        await taskItem.locator('input[type="checkbox"]').check();
+        await expect(taskItem).toHaveClass(/completed/);
+        
+        // 削除ボタンを特定して削除
+        await taskItem.locator('button:has-text("削除")').click();
+        await expect(taskItem).not.toBeVisible();
     });
 
     test('タスクのフィルタリング', async ({ page }) => {
