@@ -60,37 +60,49 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         // タスク一覧がクリアされるまで待機
         await expect(page.locator('.task-item')).not.toBeVisible();
 
-        // 複数のタスクを追加
-        const tasks = ['フィルターテスト1', 'フィルターテスト2', 'フィルターテスト3'];
+        // 複数のタスクを追加（タイムスタンプを付与して一意性を確保）
+        const timestamp = Date.now();
+        const tasks = [
+            `フィルターテスト1_${timestamp}`,
+            `フィルターテスト2_${timestamp}`,
+            `フィルターテスト3_${timestamp}`
+        ];
 
+        // タスクを順番に追加し、それぞれの追加完了を待機
         for (const task of tasks) {
             await page.fill('#newTaskInput', task);
             await page.click('button:has-text("追加")');
-            // タスクが追加されるまで待機
-            await expect(page.locator('.task-title', { hasText: task })).toBeVisible({ timeout: 30000 });
+            // タスクが追加され、表示されるまで待機
+            await expect(page.locator('.task-item', {
+                has: page.locator('.task-title', { hasText: task })
+            })).toBeVisible({ timeout: 30000 });
         }
 
         // 2番目のタスクを完了状態に変更
-        const taskItems = await page.locator('.task-item').all();
-        await taskItems[1].locator('input[type="checkbox"]').check();
+        await page.locator('.task-item', {
+            has: page.locator('.task-title', { hasText: tasks[1] })
+        }).locator('input[type="checkbox"]').check();
+
+        // フィルター処理の前に状態が反映されるまで待機
+        await page.waitForTimeout(500);
         
         // 未完了タスクのフィルター
         await page.click('button[data-filter="active"]');
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト1' })).toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト2' })).not.toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト3' })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).not.toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).toBeVisible();
         
         // 完了済みタスクのフィルター
         await page.click('button[data-filter="completed"]');
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト1' })).not.toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト2' })).toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト3' })).not.toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).not.toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).not.toBeVisible();
         
         // すべてのタスクを表示
         await page.click('button[data-filter="all"]');
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト1' })).toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト2' })).toBeVisible();
-        await expect(page.locator('.task-title', { hasText: 'フィルターテスト3' })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).toBeVisible();
+        await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).toBeVisible();
     });
 
     test('ログアウト機能', async ({ page }) => {
