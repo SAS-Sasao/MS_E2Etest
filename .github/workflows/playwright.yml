@@ -146,6 +146,10 @@ jobs:
         echo "Installing xvfb..."
         sudo apt-get install -y xvfb
         
+        echo "Installing audio dependencies..."
+        sudo apt-get install -y --fix-missing --no-install-recommends \
+          pulseaudio
+
         echo "Installing browser dependencies..."
         sudo apt-get install -y --fix-missing --no-install-recommends \
           libgtk-3-0 \
@@ -162,10 +166,11 @@ jobs:
           libgbm1 \
           libnss3 \
           libxss1 \
-          libasound2t64 \
           x11-xkb-utils \
           xauth \
-          x11-apps
+          x11-apps \
+          libpulse0 \
+          libpulse-mainloop-glib0
         
         echo "Installing npm dependencies..."
         npm ci
