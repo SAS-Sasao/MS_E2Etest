@@ -33,6 +33,7 @@ yarn-error.log
 test-results/
 playwright-report/
 /playwright/.cache/
+test-screenshots/
 
 # IDE
 .idea/
