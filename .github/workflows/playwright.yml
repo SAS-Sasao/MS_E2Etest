@@ -44,11 +44,22 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Check and clean port
+      shell: bash
+      run: |
+        echo "Checking if port 1234 is in use..."
+        if lsof -i:1234; then
+          echo "Port 1234 is in use. Killing processes..."
+          lsof -ti:1234 | xargs kill -9 || true
+        fi
+
     - name: Start backend server
       shell: bash
       run: |
         mkdir -p logs
         echo "Starting backend server..."
+        # 既存のサーバーログとPIDファイルをクリーンアップ
+        rm -f logs/server.log logs/server.pid
         if [ "$RUNNER_OS" = "Windows" ]; then
           python backend/app.py > logs/server.log 2>&1 &
         else

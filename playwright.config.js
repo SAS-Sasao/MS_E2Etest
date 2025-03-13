@@ -38,6 +38,7 @@ module.exports = defineConfig({
   webServer: {
     command: 'python backend/app.py',
     port: 1234,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
+    timeout: 120000,
   },
 });
