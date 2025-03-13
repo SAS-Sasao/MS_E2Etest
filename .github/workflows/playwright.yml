@@ -25,8 +25,17 @@ jobs:
 
     - name: Start backend server
       run: |
-        python backend/app.py &
+        nohup python backend/app.py > server.log 2>&1 &
+        echo $! > server.pid
         sleep 5  # サーバーの起動を待機
+        # サーバーが起動しているか確認
+        curl http://localhost:1234 || (cat server.log && exit 1)
+
+    - name: Create test user
+      run: |
+        curl -X POST http://localhost:1234/register \
+          -H "Content-Type: application/json" \
+          -d '{"username":"sasao","password":"ts05140952"}'
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -51,3 +60,11 @@ jobs:
           playwright-report/
           test-results/
           test-screenshots/
+          server.log
+
+    - name: Stop backend server
+      if: always()
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+        fi
