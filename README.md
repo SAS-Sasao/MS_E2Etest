@@ -114,21 +114,30 @@ npx playwright show-report
 
 ```
 MS_E2Etest/
+├── .github/
+│   └── workflows/
+│       └── playwright.yml  # GitHub Actions設定
 ├── backend/
-│   ├── app.py          # バックエンドサーバー
-│   └── database.db     # SQLiteデータベース
+│   ├── app.py             # バックエンドサーバー
+│   └── database.db        # SQLiteデータベース
 ├── frontend/
 │   ├── static/
 │   │   └── css/
-│   │       └── styles.css
+│   │       └── styles.css # スタイルシート
 │   └── templates/
-│       ├── index.html      # メインページ
-│       ├── login.html      # ログインページ
-│       └── register.html   # 登録ページ
+│       ├── index.html     # メインページ
+│       ├── login.html     # ログインページ
+│       └── register.html  # 登録ページ
 ├── tests/
 │   └── e2e/
-│       └── todo.spec.js    # E2Eテストコード
-└── playwright.config.js    # Playwright設定
+│       └── todo.spec.js   # E2Eテストコード
+├── playwright-report/     # テストレポート
+├── test-results/         # テスト結果
+├── test-screenshots/     # テスト実行時のスクリーンショット
+├── .gitignore           # Git除外設定
+├── package.json         # Node.js依存関係
+├── playwright.config.js # Playwright設定
+└── requirements.txt     # Python依存関係
 ```
 
 ## データベース構造
