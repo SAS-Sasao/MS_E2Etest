@@ -132,22 +132,10 @@ jobs:
       run: |
         echo "Installing npm dependencies..."
         npm ci || npm install
-        
-    - name: Install Playwright
-      run: |
-        echo "Installing Playwright..."
-        npm install -D @playwright/test@latest playwright@latest
-        
-    - name: Install Playwright browsers
-      run: |
-        echo "Installing Playwright browsers..."
-        PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium --with-deps
-        
-    - name: Verify Playwright installation
-      run: |
-        echo "Verifying Playwright installation..."
-        npx playwright --version
-        which playwright || true
+
+    - uses: microsoft/playwright-github-action@v1
+      with:
+        browsers: chromium
 
     - name: Environment check
       run: |
