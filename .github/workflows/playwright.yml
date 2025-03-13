@@ -83,16 +83,24 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
 
+    - name: Prepare test results
+      if: always()
+      shell: bash
+      run: |
+        mkdir -p playwright-report test-results test-screenshots
+        touch server.log
+        ls -la
+
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: test-results
         path: |
-          ${{ github.workspace }}/playwright-report/
-          ${{ github.workspace }}/test-results/
-          ${{ github.workspace }}/test-screenshots/
-          ${{ github.workspace }}/server.log
+          playwright-report
+          test-results
+          test-screenshots
+          server.log
         retention-days: 30
 
     - name: Stop backend server
