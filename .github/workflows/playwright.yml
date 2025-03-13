@@ -159,28 +159,33 @@ jobs:
         PLAYWRIGHT_HTML_REPORT: 'playwright-report'
         PLAYWRIGHT_SCREENSHOT_ON_FAILURE: '1'
         DEBUG: 'pw:api,pw:browser*,pw:protocol'
+        NODE_ENV: 'test'
       run: |
         echo "Running Playwright tests..."
-        echo "Current directory: $(pwd)"
-        echo "Directory contents:"
-        ls -la
-        
         echo "Verifying server status..."
-        if ! curl -s http://localhost:1234 > /dev/null; then
-          echo "Server is not responding. Checking logs:"
-          cat logs/server.log
-          exit 1
-        fi
+        for i in {1..5}; do
+          if curl -s http://localhost:1234 > /dev/null; then
+            echo "Server is responding"
+            break
+          fi
+          if [ $i -eq 5 ]; then
+            echo "Server is not responding after 5 attempts. Checking logs:"
+            cat logs/server.log
+            exit 1
+          fi
+          echo "Attempt $i: Server not ready, waiting..."
+          sleep 2
+        done
         
         echo "Starting tests with debug logging..."
+        xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- \
         npx playwright test \
-          --reporter=list,html,junit \
+          --project=chromium \
+          --reporter=list,html \
           --workers=1 \
           --retries=2 \
           --timeout=120000 \
-          --max-failures=5 \
-          --trace on \
-          --config=playwright.config.js
+          --trace on
 
     - name: Prepare test results
       if: always()

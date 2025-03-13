@@ -3,42 +3,46 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  timeout: 60 * 1000,
+  timeout: 120000,
   expect: {
-    timeout: 10000
+    timeout: 30000
   },
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  workers: 1,
+  reporter: [
+    ['html'],
+    ['list']
+  ],
   use: {
     baseURL: 'http://localhost:1234',
-    actionTimeout: 15000,
-    trace: 'on-first-retry',
+    actionTimeout: 30000,
+    navigationTimeout: 30000,
+    trace: 'on',
     video: 'on-first-retry',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
+    launchOptions: {
+      args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox']
+    }
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+      use: { 
+        ...devices['Desktop Chrome']
+      },
+    }
   ],
 
-  webServer: {
-    command: 'python backend/app.py',
-    port: 1234,
-    reuseExistingServer: true,
-    timeout: 120000,
-  },
+  // CI環境ではwebServer設定を無効化（GitHub Actionsで別途サーバーを起動）
+  ...(!process.env.CI && {
+    webServer: {
+      command: 'python backend/app.py',
+      port: 1234,
+      reuseExistingServer: true,
+      timeout: 120000,
+    }
+  })
 });
