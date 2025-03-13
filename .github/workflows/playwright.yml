@@ -81,15 +81,24 @@ jobs:
         npx playwright install --with-deps chromium
 
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+        echo "Running Playwright tests..."
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        npx playwright test --reporter=list
 
     - name: Prepare test results
       if: always()
       shell: bash
       run: |
+        echo "Preparing test results..."
         mkdir -p playwright-report test-results test-screenshots
         touch server.log
-        ls -la
+        echo "Directory structure:"
+        find . -type d
+        echo "File list:"
+        find . -type f
 
     - name: Upload test results
       if: always()
