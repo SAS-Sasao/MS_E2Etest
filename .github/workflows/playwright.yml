@@ -139,12 +139,16 @@ jobs:
       run: |
         echo "Installing system dependencies..."
         sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe
+        sudo apt-get update
+        
+        echo "Installing xvfb..."
         sudo apt-get install -y xvfb
         
         echo "Installing browser dependencies..."
-        sudo apt-get install -y --no-install-recommends \
+        sudo apt-get install -y --fix-missing --no-install-recommends \
           libgtk-3-0 \
-          libasound2 \
           libx11-xcb1 \
           libxcomposite1 \
           libxcursor1 \
@@ -155,7 +159,10 @@ jobs:
           libxrender1 \
           libxss1 \
           libxtst6 \
-          libgbm1
+          libgbm1 \
+          libnss3 \
+          libxss1 \
+          libasound2
         
         echo "Installing npm dependencies..."
         npm ci
