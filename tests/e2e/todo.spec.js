@@ -2,11 +2,20 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
+// テスト実行カウンター
+let testCounter = 0;
+
 // スクリーンショット保存用のヘルパー関数
 async function saveScreenshot(page, testInfo, stepName) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const testTitle = testInfo.title.replace(/[^a-z0-9]/gi, '_');
-    const dirPath = path.join('test-screenshots', timestamp.split('T')[0], testTitle);
+    // テスト番号を3桁の連番で表現（001, 002, ...）
+    const testNumber = String(testCounter + 1).padStart(3, '0');
+    const dirPath = path.join(
+        'test-screenshots',
+        timestamp.split('T')[0],
+        `${testNumber}_${testTitle}`
+    );
     
     // ディレクトリが存在しない場合は作成
     if (!fs.existsSync(dirPath)) {
@@ -20,6 +29,16 @@ async function saveScreenshot(page, testInfo, stepName) {
         fullPage: true
     });
 }
+
+// テスト実行前にカウンターをリセット
+test.beforeAll(() => {
+    testCounter = 0;
+});
+
+// 各テスト実行後にカウンターをインクリメント
+test.afterEach(() => {
+    testCounter++;
+});
 
 test.describe('TODOアプリケーションのE2Eテスト', () => {
     // テスト全体で使用する認証情報（固定）
