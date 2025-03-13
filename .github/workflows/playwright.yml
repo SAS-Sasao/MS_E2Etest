@@ -82,8 +82,35 @@ jobs:
         fi
 
     - name: Create test user
+      shell: bash
       run: |
-        python -c "import requests, sys; response = requests.post('http://localhost:1234/register', headers={'Content-Type': 'application/json'}, json={'username': 'sasao', 'password': 'ts05140952'}); sys.exit(0 if response.status_code == 201 else print(f'Failed to create user: {response.text}') or 1)"
+        echo "Creating test user..."
+        for i in {1..5}; do
+          response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"username":"sasao","password":"ts05140952"}' \
+            -w "\n%{http_code}" \
+            http://localhost:1234/register)
+          
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n1)
+          
+          if [ "$status_code" = "201" ]; then
+            echo "Test user created successfully"
+            break
+          fi
+          
+          if [ $i -eq 5 ]; then
+            echo "Failed to create test user after 5 attempts"
+            echo "Last response: $body"
+            echo "Status code: $status_code"
+            cat logs/server.log
+            exit 1
+          fi
+          
+          echo "Attempt $i failed, retrying in 2 seconds..."
+          sleep 2
+        done
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
