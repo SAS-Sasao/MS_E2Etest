@@ -96,13 +96,18 @@ jobs:
         ls -R
 
     - name: Run Playwright tests
+      env:
+        CI: 'true'
+        PLAYWRIGHT_BROWSERS_PATH: '0'
       run: |
         echo "Running Playwright tests..."
         echo "Current directory: $(pwd)"
         echo "Directory contents:"
         ls -la
+        echo "Browser information:"
+        npx playwright install chromium --dry-run
         echo "Starting tests with debug logging..."
-        DEBUG=pw:api npx playwright test --reporter=list
+        DEBUG=pw:api,pw:browser* npx playwright test --reporter=list --workers=1 --retries=2
 
     - name: Prepare test results
       if: always()
