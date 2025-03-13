@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  actions: write
+  checks: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -47,9 +52,10 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
-    - name: Install dependencies
+    - name: Clean install dependencies
       run: |
-        npm ci
+        rm -f package-lock.json
+        npm install
         npx playwright install --with-deps chromium
 
     - name: Run Playwright tests
