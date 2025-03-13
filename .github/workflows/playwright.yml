@@ -162,7 +162,10 @@ jobs:
           libgbm1 \
           libnss3 \
           libxss1 \
-          libasound2
+          libasound2t64 \
+          x11-xkb-utils \
+          xauth \
+          x11-apps
         
         echo "Installing npm dependencies..."
         npm ci
