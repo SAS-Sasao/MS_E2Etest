@@ -47,16 +47,16 @@ jobs:
     - name: Start backend server
       shell: bash
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          start /b python backend/app.py > server.log 2>&1
-          sleep 5
+        mkdir -p logs
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          python backend/app.py > logs/server.log 2>&1 &
         else
-          nohup python backend/app.py > server.log 2>&1 &
-          echo $! > server.pid
-          sleep 5
+          nohup python backend/app.py > logs/server.log 2>&1 &
+          echo $! > logs/server.pid
         fi
+        sleep 5
         # サーバーが起動しているか確認
-        python -c "import requests, sys; try: response = requests.get('http://localhost:1234'); sys.exit(0 if response.status_code == 200 else 1); except Exception as e: print(f'Error: {e}'); [print(line) for line in open('server.log').readlines()]; sys.exit(1)"
+        python -c "import requests, sys; try: response = requests.get('http://localhost:1234'); sys.exit(0 if response.status_code == 200 else 1); except Exception as e: print(f'Error: {e}'); [print(line) for line in open('logs/server.log').readlines()]; sys.exit(1)"
 
     - name: Create test user
       run: |
@@ -129,8 +129,7 @@ jobs:
       shell: bash
       run: |
         echo "Preparing test results..."
-        mkdir -p playwright-report test-results test-screenshots
-        touch server.log
+        mkdir -p playwright-report test-results test-screenshots logs
         echo "Directory structure:"
         find . -type d
         echo "File list:"
@@ -142,10 +141,10 @@ jobs:
       with:
         name: test-results
         path: |
-          playwright-report
-          test-results
-          test-screenshots
-          server.log
+          playwright-report/
+          test-results/
+          test-screenshots/
+          logs/
         retention-days: 30
 
     - name: Stop backend server
@@ -155,7 +154,7 @@ jobs:
         if [ "$RUNNER_OS" == "Windows" ]; then
           taskkill /F /IM python.exe || true
         else
-          if [ -f server.pid ]; then
-            kill $(cat server.pid) || true
+          if [ -f logs/server.pid ]; then
+            kill $(cat logs/server.pid) || true
           fi
         fi
