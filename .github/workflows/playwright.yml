@@ -80,13 +80,29 @@ jobs:
         npm install
         npx playwright install --with-deps chromium
 
+    - name: Environment check
+      run: |
+        echo "System information:"
+        uname -a
+        echo "Node.js version:"
+        node -v
+        echo "npm version:"
+        npm -v
+        echo "Python version:"
+        python --version
+        echo "Pip packages:"
+        pip list
+        echo "Workspace contents:"
+        ls -R
+
     - name: Run Playwright tests
       run: |
         echo "Running Playwright tests..."
         echo "Current directory: $(pwd)"
         echo "Directory contents:"
         ls -la
-        npx playwright test --reporter=list
+        echo "Starting tests with debug logging..."
+        DEBUG=pw:api npx playwright test --reporter=list
 
     - name: Prepare test results
       if: always()
