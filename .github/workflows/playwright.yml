@@ -24,14 +24,21 @@ jobs:
         pip install flask flask-sqlalchemy flask-login
 
     - name: Start backend server
+      shell: bash
       run: |
-        nohup python backend/app.py > server.log 2>&1 &
-        echo $! > server.pid
-        sleep 5  # サーバーの起動を待機
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          start /b python backend/app.py > server.log 2>&1
+          sleep 5
+        else
+          nohup python backend/app.py > server.log 2>&1 &
+          echo $! > server.pid
+          sleep 5
+        fi
         # サーバーが起動しているか確認
         curl http://localhost:1234 || (cat server.log && exit 1)
 
     - name: Create test user
+      shell: bash
       run: |
         curl -X POST http://localhost:1234/register \
           -H "Content-Type: application/json" \
@@ -64,7 +71,12 @@ jobs:
 
     - name: Stop backend server
       if: always()
+      shell: bash
       run: |
-        if [ -f server.pid ]; then
-          kill $(cat server.pid) || true
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          taskkill /F /IM python.exe || true
+        else
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+          fi
         fi
