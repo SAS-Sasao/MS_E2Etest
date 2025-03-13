@@ -99,6 +99,9 @@ jobs:
       env:
         CI: 'true'
         PLAYWRIGHT_BROWSERS_PATH: '0'
+        PLAYWRIGHT_JUNIT_OUTPUT_NAME: 'test-results/junit.xml'
+        PLAYWRIGHT_HTML_REPORT: 'playwright-report'
+        PLAYWRIGHT_SCREENSHOT_ON_FAILURE: '1'
       run: |
         echo "Running Playwright tests..."
         echo "Current directory: $(pwd)"
@@ -106,8 +109,16 @@ jobs:
         ls -la
         echo "Browser information:"
         npx playwright install chromium --dry-run
+        echo "Network check:"
+        curl -v http://localhost:1234 || true
         echo "Starting tests with debug logging..."
-        DEBUG=pw:api,pw:browser* npx playwright test --reporter=list --workers=1 --retries=2
+        DEBUG=pw:api,pw:browser*,pw:protocol npx playwright test \
+          --reporter=list,html,junit \
+          --workers=1 \
+          --retries=2 \
+          --timeout=60000 \
+          --max-failures=5 \
+          --trace on
 
     - name: Prepare test results
       if: always()
