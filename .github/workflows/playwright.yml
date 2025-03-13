@@ -48,15 +48,38 @@ jobs:
       shell: bash
       run: |
         mkdir -p logs
+        echo "Starting backend server..."
         if [ "$RUNNER_OS" = "Windows" ]; then
           python backend/app.py > logs/server.log 2>&1 &
         else
           nohup python backend/app.py > logs/server.log 2>&1 &
           echo $! > logs/server.pid
         fi
-        sleep 5
-        # サーバーが起動しているか確認
-        python -c "import requests, sys; try: response = requests.get('http://localhost:1234'); sys.exit(0 if response.status_code == 200 else 1); except Exception as e: print(f'Error: {e}'); [print(line) for line in open('logs/server.log').readlines()]; sys.exit(1)"
+        
+        # サーバー起動を待機
+        echo "Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -s http://localhost:1234 > /dev/null; then
+            echo "Server is up and running"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "Server failed to start"
+            cat logs/server.log
+            exit 1
+          fi
+          echo "Attempt $i: Server not ready, waiting..."
+          sleep 1
+        done
+        # サーバーの状態を確認
+        echo "Checking server status..."
+        response=$(curl -s -w "\n%{http_code}" http://localhost:1234)
+        status_code=$(echo "$response" | tail -n1)
+        if [ "$status_code" != "200" ]; then
+          echo "Server returned status code: $status_code"
+          cat logs/server.log
+          exit 1
+        fi
 
     - name: Create test user
       run: |
