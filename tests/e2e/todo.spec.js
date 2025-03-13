@@ -1,4 +1,25 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+
+// スクリーンショット保存用のヘルパー関数
+async function saveScreenshot(page, testInfo, stepName) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const testTitle = testInfo.title.replace(/[^a-z0-9]/gi, '_');
+    const dirPath = path.join('test-screenshots', timestamp.split('T')[0], testTitle);
+    
+    // ディレクトリが存在しない場合は作成
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
+    
+    // スクリーンショットを保存
+    const fileName = `${testInfo.retry}_${stepName}.png`;
+    await page.screenshot({
+        path: path.join(dirPath, fileName),
+        fullPage: true
+    });
+}
 
 test.describe('TODOアプリケーションのE2Eテスト', () => {
     // テスト全体で使用する認証情報（固定）
@@ -16,12 +37,13 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         await expect(page).toHaveURL('http://localhost:1234/');
     });
 
-    test('ログイン状態の確認', async ({ page }) => {
+    test('ログイン状態の確認', async ({ page }, testInfo) => {
         // ユーザー情報が正しく表示されていることを確認
         await expect(page.locator('.user-info')).toContainText(testUsername);
+        await saveScreenshot(page, testInfo, '01_ログイン状態確認');
     });
 
-    test('タスクの追加、完了、削除', async ({ page }) => {
+    test('タスクの追加、完了、削除', async ({ page }, testInfo) => {
         // 既存のタスクをすべて削除
         const deleteButtons = await page.locator('button:has-text("削除")').all();
         for (const button of deleteButtons) {
@@ -35,6 +57,7 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         
         // 追加したタスクが表示されるまで待機（タイムアウトを30秒に延長）
         await expect(page.locator('.task-title', { hasText: taskTitle })).toBeVisible({ timeout: 30000 });
+        await saveScreenshot(page, testInfo, '01_タスク追加後');
         
         // 追加したタスクの要素を取得
         const taskItem = page.locator('.task-item', { has: page.locator('.task-title', { hasText: taskTitle }) });
@@ -42,13 +65,15 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         // チェックボックスを特定して完了状態に変更
         await taskItem.locator('input[type="checkbox"]').check();
         await expect(taskItem).toHaveClass(/completed/);
+        await saveScreenshot(page, testInfo, '02_タスク完了後');
         
         // 削除ボタンを特定して削除
         await taskItem.locator('button:has-text("削除")').click();
         await expect(taskItem).not.toBeVisible();
+        await saveScreenshot(page, testInfo, '03_タスク削除後');
     });
 
-    test('タスクのフィルタリング', async ({ page }) => {
+    test('タスクのフィルタリング', async ({ page }, testInfo) => {
         // 既存のタスクをすべて削除し、完了を待機
         const deleteButtons = await page.locator('button:has-text("削除")').all();
         for (const button of deleteButtons) {
@@ -77,6 +102,7 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
                 has: page.locator('.task-title', { hasText: task })
             })).toBeVisible({ timeout: 30000 });
         }
+        await saveScreenshot(page, testInfo, '01_全タスク追加後');
 
         // 2番目のタスクを完了状態に変更
         await page.locator('.task-item', {
@@ -88,28 +114,35 @@ test.describe('TODOアプリケーションのE2Eテスト', () => {
         
         // 未完了タスクのフィルター
         await page.click('button[data-filter="active"]');
+        await saveScreenshot(page, testInfo, '02_未完了タスクフィルター');
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).not.toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).toBeVisible();
         
         // 完了済みタスクのフィルター
         await page.click('button[data-filter="completed"]');
+        await saveScreenshot(page, testInfo, '03_完了済みタスクフィルター');
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).not.toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).not.toBeVisible();
         
         // すべてのタスクを表示
         await page.click('button[data-filter="all"]');
+        await saveScreenshot(page, testInfo, '04_全タスク表示');
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[0] }) })).toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[1] }) })).toBeVisible();
         await expect(page.locator('.task-item', { has: page.locator('.task-title', { hasText: tasks[2] }) })).toBeVisible();
     });
 
-    test('ログアウト機能', async ({ page }) => {
+    test('ログアウト機能', async ({ page }, testInfo) => {
+        // ログアウト前の状態をキャプチャ
+        await saveScreenshot(page, testInfo, '01_ログアウト前');
+        
         // ログアウト
         await page.click('button:has-text("ログアウト")');
         
         // ログインページにリダイレクトされることを確認
         await expect(page).toHaveURL(/.*login/);
+        await saveScreenshot(page, testInfo, '02_ログアウト後');
     });
 });
