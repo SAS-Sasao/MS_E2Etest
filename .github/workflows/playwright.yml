@@ -128,11 +128,15 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Clean install dependencies
+    - name: Install dependencies
       run: |
-        rm -f package-lock.json
-        npm install
-        npx playwright install --with-deps chromium
+        npm ci || npm install
+        
+    - name: Install Playwright browsers
+      run: |
+        echo "Installing Playwright browsers..."
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install
+        npx playwright install chromium --with-deps
 
     - name: Environment check
       run: |
