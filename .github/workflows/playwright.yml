@@ -129,6 +129,12 @@ jobs:
         node-version: '20'
         cache: 'npm'
 
+    - name: Setup display
+      run: |
+        echo "Setting up Xvfb..."
+        Xvfb :99 -screen 0 1280x960x24 &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
+
     - name: Install dependencies
       run: |
         echo "Installing system dependencies..."
@@ -138,10 +144,14 @@ jobs:
         echo "Installing npm dependencies..."
         npm ci
         
-    - name: Install Playwright Browsers
+    - name: Install Playwright
       run: |
-        echo "Installing Playwright and browsers..."
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install
+        echo "Installing Playwright..."
+        npm install -D @playwright/test@latest
+        
+    - name: Install browser
+      run: |
+        echo "Installing Chromium..."
         npx playwright install chromium
 
     - name: Environment check
