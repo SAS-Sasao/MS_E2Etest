@@ -23,15 +23,28 @@ module.exports = defineConfig({
     video: 'on-first-retry',
     screenshot: 'only-on-failure',
     launchOptions: {
-      args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox']
-    }
+      args: [
+        '--disable-gpu',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-web-security'
+      ]
+    },
+    viewport: { width: 1280, height: 720 },
+    ignoreHTTPSErrors: true,
+    bypassCSP: true
   },
 
   projects: [
     {
       name: 'chromium',
       use: { 
-        ...devices['Desktop Chrome']
+        ...devices['Desktop Chrome'],
+        contextOptions: {
+          reducedMotion: 'reduce',
+          forcedColors: 'active'
+        }
       },
     }
   ],
