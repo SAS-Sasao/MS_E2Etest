@@ -134,4 +134,4 @@ def delete_task(task_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(port=6000, debug=True)
+    app.run(port=1234, debug=True)

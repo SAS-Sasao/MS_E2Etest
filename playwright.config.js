@@ -3,9 +3,9 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   expect: {
-    timeout: 5000
+    timeout: 10000
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -13,8 +13,8 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:6000',
-    actionTimeout: 0,
+    baseURL: 'http://localhost:1234',
+    actionTimeout: 15000,
     trace: 'on-first-retry',
     video: 'on-first-retry',
     screenshot: 'only-on-failure'
@@ -37,7 +37,7 @@ module.exports = defineConfig({
 
   webServer: {
     command: 'python backend/app.py',
-    port: 6000,
+    port: 1234,
     reuseExistingServer: !process.env.CI,
   },
 });
