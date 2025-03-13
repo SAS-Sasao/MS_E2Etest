@@ -1,14 +1,11 @@
 {
   "name": "ms_e2etest",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "MSプロジェクトE2Eテストサンプル",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@playwright/test": "^1.50.1",
     "playwright": "^1.50.1"
