@@ -10,6 +10,10 @@ permissions:
   contents: read
   actions: write
   checks: write
+  pull-requests: write
+  issues: write
+  packages: write
+  pages: write
 
 jobs:
   test:
@@ -83,12 +87,13 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v3
       with:
-        name: playwright-report
+        name: test-results
         path: |
-          playwright-report/
-          test-results/
-          test-screenshots/
-          server.log
+          ${{ github.workspace }}/playwright-report/
+          ${{ github.workspace }}/test-results/
+          ${{ github.workspace }}/test-screenshots/
+          ${{ github.workspace }}/server.log
+        retention-days: 30
 
     - name: Stop backend server
       if: always()
